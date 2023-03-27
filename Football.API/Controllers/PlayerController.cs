@@ -1,6 +1,8 @@
 ﻿using Football.API.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Football.API.Controllers
 {
@@ -15,38 +17,80 @@ namespace Football.API.Controllers
         }
 
         [HttpGet]
-        [Route("")]
         public ActionResult<IEnumerable<Player>> Get()
         {
             return this.Ok(footballContext.Players);
         }
 
         [HttpGet]
-        [Route("{id}", Name = "GetById")]
-        public ActionResult GetById(int id)
+        [Route("{id}")]
+        public ActionResult Get(int id)
         {
-            var response = footballContext.Players.Find(id);
-            if (response == default)
-                this.NotFound();
-            return this.Ok();
+            var player = footballContext.Players.Find(id);
+            if (player == default)
+                return NotFound();
+            return Ok(player);
         }
 
         [HttpPost]
         public ActionResult Post(Player player)
         {
-            var response = footballContext.Players.Add(player).Entity;
-            return this.CreatedAtAction("GetById", response.Id, response);
+            footballContext.Players.Add(player);
+            footballContext.SaveChanges();
+            
+            return CreatedAtAction("Get", player.Id, player);
         }
 
         [HttpPut]
         [Route("{id}")]
         public ActionResult Update(int id, Player player)
         {
-            if (footballContext.Players.Find(id) == default)
-                return this.NotFound();
+            if (id != player.Id)
+            {
+                return BadRequest();
+            }
 
-            footballContext.Players.Update(player);        
-            return this.Ok();
+            try
+            {
+                footballContext.Players.Update(player);
+                footballContext.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PlayerExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public ActionResult Delete(int id)
+        {
+            var player = footballContext.Players.Find(id);
+            if (player == null)
+            {
+                return NotFound();
+            }
+
+            footballContext.Players.Remove(player);
+            footballContext.SaveChanges();
+
+            return Ok(player);
+
+        }
+
+
+        private bool PlayerExists(int id)
+        {
+            return footballContext.Players.Any(e => e.Id == id);
         }
     }
 }

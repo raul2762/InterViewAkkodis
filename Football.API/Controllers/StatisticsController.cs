@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Football.API.Models;
+using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 
 namespace Football.API.Controllers
 {
@@ -17,21 +19,24 @@ namespace Football.API.Controllers
         [Route("yellowcards")]
         public ActionResult GetYellowCards()
         {
-            throw new NotImplementedException();
+            Card card = new Card(footballContext);
+            return Ok(card.YellowCards);
         }
 
         [HttpGet]
         [Route("redcards")]
         public ActionResult GetRedCards()
         {
-            throw new NotImplementedException();
+            Card card = new Card(footballContext);
+            return Ok(card.RedCards);
         }
 
         [HttpGet]
         [Route("minutesplayed")]
         public ActionResult GetMinutesPlayed()
         {
-            throw new NotImplementedException();
+            Util util = new Util(footballContext);
+            return Ok(util.MinutesPlayed);
         }
     }
 }

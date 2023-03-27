@@ -1,4 +1,5 @@
 ﻿using Football.API.Models;
+using System;
 using System.Linq;
 
 namespace Football.API
@@ -45,6 +46,22 @@ namespace Football.API
 
             foreach (var r in referees)
                 context.Referees.Add(r);
+            context.SaveChanges();
+
+            var matches = new Match[]
+            {
+                new Match{
+                    HouseManager = context.Managers.First(m => m.Name == "Alex"),
+                    AwayManager = context.Managers.First(m => m.Name == "Zidane"),
+                    Referee = context.Referees.First(m => m.Name == "Pierluigi") },
+                new Match{
+                    HouseManager = context.Managers.First(m => m.Name == "Zidane"),
+                    AwayManager = context.Managers.First(m => m.Name == "Guardiola"),
+                    Referee = context.Referees.First(m => m.Name == "Howard") }
+            };
+
+            foreach (var ma in matches)
+                context.Matches.Add(ma);
             context.SaveChanges();
         }
     }

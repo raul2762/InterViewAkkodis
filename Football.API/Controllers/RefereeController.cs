@@ -1,6 +1,8 @@
 ﻿using Football.API.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Football.API.Controllers
 {
@@ -15,38 +17,78 @@ namespace Football.API.Controllers
         }
 
         [HttpGet]
-        [Route("")]
         public ActionResult<IEnumerable<Referee>> Get()
         {
             return this.Ok(footballContext.Referees);
         }
 
         [HttpGet]
-        [Route("{id}", Name = "GetById")]
-        public ActionResult GetById(int id)
+        [Route("{id}")]
+        public ActionResult Get(int id)
         {
-            var response = footballContext.Referees.Find(id);
-            if (response == default)
-                this.NotFound();
-            return this.Ok();
+            var referee = footballContext.Referees.Find(id);
+            if (referee == default)
+                return NotFound();
+            return Ok(referee);
         }
 
         [HttpPost]
         public ActionResult Post(Referee referee)
         {
-            var response = footballContext.Referees.Add(referee).Entity;
-            return this.CreatedAtAction("GetById", response.Id, response);
+            footballContext.Referees.Add(referee);
+            footballContext.SaveChanges();
+
+            return CreatedAtAction("Get", referee.Id, referee);
         }
 
         [HttpPut]
         [Route("{id}")]
         public ActionResult Update(int id, Referee referee)
         {
-            if (footballContext.Referees.Find(id) == default)
-                return this.NotFound();
+            if (id != referee.Id)
+            {
+                return BadRequest();
+            }
 
-            footballContext.Referees.Update(referee);        
+            try
+            {
+                footballContext.Referees.Update(referee);
+                footballContext.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RefereeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return this.Ok();
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public ActionResult Delete(int id)
+        {
+            var referee = footballContext.Referees.Find(id);
+            if (referee == null)
+            {
+                return NotFound();
+            }
+
+            footballContext.Referees.Remove(referee);
+            footballContext.SaveChanges();
+
+            return Ok(referee);
+
+        }
+
+        private bool RefereeExists(int id)
+        {
+            return footballContext.Referees.Any(e => e.Id == id);
         }
     }
 }
